@@ -26,6 +26,7 @@ async function run() {
     // await client.connect();
 
     const coffeesCollection = client.db("coffeeDB").collection("coffees");
+    const userCollection = client.db("coffeeDB").collection("users");
 
     app.get("/coffees", async (req, res) => {
       const result = await coffeesCollection.find().toArray();
@@ -71,6 +72,37 @@ async function run() {
       res.send(result);
     });
 
+    // User related APIs
+    app.get("/users", async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post("/users", async (req, res) => {
+      const userProfile = req.body;
+      const result = await userCollection.insertOne(userProfile);
+      res.send(result);
+    });
+
+    app.patch("/users", async (req, res) => {
+      const { email, lastSignInTime } = req.body;
+      const filter = { email: email };
+      const updateDoc = {
+        $set: {
+          lastSignInTime: lastSignInTime,
+        },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+    app.delete("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await userCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log(
@@ -84,7 +116,7 @@ async function run() {
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-  res.send("Coffee server is getting hotter.");
+  res.send("Coffee server is Runging");
 });
 
 app.listen(port, () => {
